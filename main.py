@@ -13,7 +13,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 class ClaudeAnalyzer:
     def __init__(self, api_key):
-        self.api_key = api_key
+        self.api_key = api_key.split()[0]
         self.client = anthropic.Anthropic(api_key=api_key)
         self.model = "claude-3-haiku-20240307"  # Using a faster model for responsiveness
 
@@ -85,12 +85,41 @@ class ClaudeAnalyzer:
                 return json.loads(json_match.group(1))
             return {"error": "Failed to parse response", "raw_response": response_text}
 
-    def analyze_savings(self, categorized_data):
+    def analyze_savings(self, categorized_data, savings_level="Low"):
         """
-        Make a single API call to get savings recommendations based on categorized data
+        Make a single API call to get savings recommendations based on categorized data and savings level
         """
+        
+        print(categorized_data)
+        
+        # Extract unique categories from the categorized data
+        unique_categories = set(item["category"] for item in categorized_data["categorized_transactions"])
+        
+        category_sums = {}
+        
+        for category in unique_categories:
+            category_sums[category] = 0
+            for item in categorized_data["categorized_transactions"]:
+                if item["category"] == category:
+                    if item["amount"] < 0:
+                        category_sums[category] += abs(item["amount"])
+                    
+        print(category_sums)
+        
+        # Order category sums from high to low
+        ordered_category_sums = dict(sorted(category_sums.items(), key=lambda item: item[1], reverse=True))
+        
+        # Calculate savings factor based on selected level
+        savings_factor = {
+            "Low": 0.05,      # 5% savings target
+            "Medium": 0.15,   # 15% savings target
+            "High": 0.25      # 25% savings target
+        }.get(savings_level, 0.05)  # Default to Low if not specified
+        
+        # Prepare data for the prompt
         # Create a summary of spending by category
         category_summary = {}
+        
         for item in categorized_data["categorized_transactions"]:
             category = item["category"]
             amount = item["amount"]
@@ -103,7 +132,6 @@ class ClaudeAnalyzer:
                 category_summary[category] = 0
             category_summary[category] += abs(amount)
         
-        # Prepare data for the prompt
         transactions_summary = json.dumps(categorized_data["categorized_transactions"], indent=2)
         spending_summary = json.dumps(category_summary, indent=2)
         
@@ -116,26 +144,38 @@ class ClaudeAnalyzer:
         And here's a summary of spending by category:
         {spending_summary}
         
+        And here's the total spending by category:
+        {json.dumps(ordered_category_sums, indent=2)}
+        
+        The user has selected a "{savings_level}" savings level, which indicates they want 
+        {'modest savings with minimal lifestyle changes' if savings_level == 'Low' else 'balanced approach with moderate changes' if savings_level == 'Medium' else 'aggressive savings with significant adjustments'}.
+        
+        Based on this level, aim for approximately {int(savings_factor * 100)}% in savings for their main spending categories.
+        
         Please analyze this data and provide:
-        1. The top 3-5 potential areas for savings
-        2. For each area, estimate how much could be saved monthly
-        3. Specific actionable recommendations for each area
-        4. The total estimated monthly savings if all recommendations are followed
+        1. The most significant areas of spending (top 3-5 categories)
+        2. For each area, calculate the current monthly spending and a realistic target amount after savings
+        3. Calculate how much could be saved monthly based on the {savings_level} savings level
+        4. Specific actionable recommendations for each area to reduce spending. When recommending, reference the original transactions and how they might be changed. Be specific.
+        5. The total estimated monthly savings if all recommendations are followed 
         
         Return your analysis as a JSON string with this structure:
         {{
             "savings_areas": [
                 {{
                     "area": "name of spending area",
-                    "monthly_potential": dollar amount as number,
+                    "current_spending": current monthly spending as number directly from the ordered category sums,
+                    "monthly_potential": realistic monthly savings as number,
                     "recommendations": ["specific recommendation 1", "specific recommendation 2"]
                 }},
                 // more areas...
             ],
             "total_monthly_savings": total dollar amount as number,
+            "savings_level": "{savings_level}",
             "summary": "brief overall summary of findings"
         }}
         
+        IMPORTANT: All numerical values for current spending and potential savings must be based on the actual transaction data provided, not hypothetical amounts.
         Only return valid JSON, no additional text.
         """
         
@@ -171,8 +211,14 @@ def index():
 def upload_file():
     # Check if API key is provided
     api_key = request.form.get('api_key')
+    api_key = api_key.split()[0]
     if not api_key:
         return jsonify({"error": "API key is required"}), 400
+    
+    # Check if savings level is provided
+    savings_level = request.form.get('savings_level', 'Low')
+    if savings_level not in ['Low', 'Medium', 'High']:
+        savings_level = 'Low'  # Default to Low if invalid value
     
     # Check if file is provided
     if 'file' not in request.files:
@@ -197,14 +243,16 @@ def upload_file():
             if not all(col in df.columns for col in required_cols):
                 return jsonify({"error": "CSV file must contain Date, Description, and Amount columns"}), 400
             
+            print(api_key)
+            
             # Initialize the Claude Analyzer
             analyzer = ClaudeAnalyzer(api_key)
             
             # Get categorized transactions
             categorized_data = analyzer.analyze_expenses(df)
             
-            # Get savings analysis
-            savings_analysis = analyzer.analyze_savings(categorized_data)
+            # Get savings analysis with the specified savings level
+            savings_analysis = analyzer.analyze_savings(categorized_data, savings_level)
             
             # Combine results
             result = {
