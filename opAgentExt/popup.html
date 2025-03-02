@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>opAgent</title>
+  <style>
+    :root {
+      --primary: #6c3ce9;
+      --primary-dark: #5429d0;
+      --secondary: #00d4ff;
+      --secondary-dark: #00b8e0;
+      --background: #0f1a2a;
+      --card: #1a2639;
+      --text: #e0e6ed;
+      --text-light: #8a94a7;
+      --border: #2a3a59;
+      --shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+      --accent: #0d1f3a;
+      --highlight: #ff3cac;
+      --gradient-1: linear-gradient(135deg, #6c3ce9, #00d4ff);
+      --gradient-2: linear-gradient(135deg, #ff3cac, #784ba0);
+      --glow: 0 0 15px rgba(108, 60, 233, 0.5);
+    }
+
+    body {
+      font-family: "Tahoma", Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+      color: var(--text);
+      line-height: 1.6;
+      min-width: 400px;
+      min-height: 500px;
+      background-image: radial-gradient(
+          circle at 10% 20%,
+          rgba(108, 60, 233, 0.1) 0%,
+          transparent 40%
+        ),
+        radial-gradient(
+          circle at 90% 80%,
+          rgba(0, 212, 255, 0.1) 0%,
+          transparent 40%
+        );
+      border-radius: 12px;
+      overflow: hidden; /* Ensures content doesn't overflow rounded corners */
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      background: var(--gradient-1);
+      color: white;
+      padding: 20px 0;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
+      transform: translateX(-100%);
+      animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+    }
+
+    .logo::before {
+      content: "⚡";
+      margin-right: 10px;
+      font-size: 24px;
+    }
+
+    h1, h2, h3 {
+      margin-bottom: 15px;
+      color: var(--secondary);
+    }
+
+    .card {
+      background-color: var(--card);
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--gradient-1);
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: var(--secondary);
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    button {
+      background: var(--gradient-1);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      margin-top: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--glow);
+      width: 100%;
+      font-size: 16px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3), var(--glow);
+    }
+
+    button::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
+      transform: translateX(-100%);
+    }
+
+    button:hover::after {
+      animation: shimmer 1.5s infinite;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--accent);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-dark);
+    }
+
+    .feature-list {
+      margin-left: 20px;
+      margin-bottom: 15px;
+    }
+
+    .feature-list li {
+      margin-bottom: 8px;
+      position: relative;
+      padding-left: 20px;
+    }
+
+    .feature-list li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--highlight);
+    }
+    
+    .alert-card {
+      background-color: var(--card);
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--highlight);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .alert-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--gradient-2);
+    }
+    
+    .savings-tip {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding: 10px;
+      background-color: rgba(255, 60, 172, 0.1);
+      border-radius: 8px;
+      border-left: 3px solid var(--highlight);
+    }
+    
+    .savings-tip::before {
+      content: "💰";
+      font-size: 24px;
+      margin-right: 15px;
+    }
+    
+    .price-tag {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--highlight);
+      margin: 15px 0;
+      text-align: center;
+    }
+    
+    .alternatives {
+      background-color: var(--accent);
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+    
+    .alternatives h4 {
+      color: var(--secondary);
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="alert-card">
+      <div class="card-title">Purchase Alert</div>
+      <div class="price-tag">$149.99</div>
+      <p>We noticed you're about to make a purchase. Before you proceed, consider your savings goals!</p>
+      <div class="savings-tip">
+        This purchase is equivalent to 15% of your monthly savings target.
+      </div>
+      <div class="alternatives">
+        <h4>Suggestions:</h4>
+        <ul class="feature-list">
+          <li>Wait 24 hours before making this purchase</li>
+          <li>Check if there are any upcoming sales</li>
+          <li>Look for similar items at lower price points</li>
+          <li>Consider if this purchase aligns with your financial goals</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">Your Savings Overview</div>
+      <p>Monthly savings target: <strong>$1,000</strong></p>
+      <p>Current progress: <strong>65%</strong></p>
+      <p>Remaining budget this month: <strong>$350</strong></p>
+      <div style="margin-top: 15px; text-align: center;">
+        <button id="continueButton">Continue to Purchase</button>
+        <button id="cancelButton" style="background: var(--gradient-2); margin-top: 10px;">Cancel Purchase</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
